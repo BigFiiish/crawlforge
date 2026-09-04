@@ -2,9 +2,12 @@ package io.github.bigfiiish.crawlforge.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import io.github.bigfiiish.crawlforge.career.CareerScanService;
+import io.github.bigfiiish.crawlforge.career.JobPosting;
 import io.github.bigfiiish.crawlforge.domain.CrawlJob;
 import io.github.bigfiiish.crawlforge.domain.CrawlStatus;
 import io.github.bigfiiish.crawlforge.domain.CrawledPage;
@@ -36,6 +39,9 @@ class CrawlerWorkerIntegrationTest {
     @Autowired
     private CrawlApplicationService service;
 
+    @Autowired
+    private CareerScanService careerScans;
+
     @BeforeAll
     static void startServer() throws IOException {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
@@ -62,6 +68,20 @@ class CrawlerWorkerIntegrationTest {
                 respond(exchange, 200, "text/html", "<html><title>Recovered</title><body>ok</body></html>");
             }
         });
+        server.createContext("/careers/job/java-platform-engineer", exchange -> respond(exchange, 200, "text/html", """
+                <html><head><script type="application/ld+json">
+                {"@context":"https://schema.org","@type":"JobPosting","title":"Java Platform Engineer",
+                 "hiringOrganization":{"name":"Acme Labs"},
+                 "jobLocation":{"address":{"addressLocality":"Pittsburgh","addressRegion":"PA","addressCountry":"US"}},
+                 "experienceRequirements":"3+ years of experience","employmentType":"FULL_TIME",
+                 "description":"Build Java and Spring Boot services on AWS using PostgreSQL and Kafka."}
+                </script></head><body><h1>Java Platform Engineer</h1></body></html>
+                """));
+        server.createContext("/careers", exchange -> respond(exchange, 200, "text/html", """
+                <html><head><title>Acme Careers</title></head><body>
+                <h1>Careers at Acme</h1><a href="/careers/job/java-platform-engineer">Java Platform Engineer</a>
+                </body></html>
+                """));
         server.createContext("/", exchange -> respond(exchange, 200, "text/html", """
                 <html><head><title>Home</title></head><body>
                 <a href="/a">A</a><a href="/a#duplicate">A duplicate</a>
@@ -101,6 +121,21 @@ class CrawlerWorkerIntegrationTest {
         assertEquals(CrawlStatus.COMPLETED, completed.status());
         assertEquals(1, completed.pagesCrawled());
         assertEquals(2, flakyRequests.get());
+    }
+
+    @Test
+    void discoversAndExtractsStructuredCareerJobs() throws Exception {
+        CrawlJob created = careerScans.create(baseUrl + "/careers", 10, 2, 10.0);
+
+        CrawlJob completed = awaitTerminal(created.id(), Duration.ofSeconds(8));
+        List<JobPosting> jobs = careerScans.jobs(created.id());
+
+        assertEquals(CrawlStatus.COMPLETED, completed.status());
+        assertEquals(1, jobs.size());
+        assertEquals("Java Platform Engineer", jobs.getFirst().title());
+        assertEquals("Pittsburgh, PA, US", jobs.getFirst().location());
+        assertTrue(jobs.getFirst().skills().containsAll(List.of("Java", "Spring Boot", "AWS", "Kafka", "PostgreSQL")));
+        assertEquals("JSON_LD", jobs.getFirst().extractionMethod());
     }
 
     private CrawlJob awaitTerminal(java.util.UUID id, Duration timeout) throws InterruptedException {

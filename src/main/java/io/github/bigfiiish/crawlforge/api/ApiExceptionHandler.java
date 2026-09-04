@@ -1,6 +1,7 @@
 package io.github.bigfiiish.crawlforge.api;
 
 import io.github.bigfiiish.crawlforge.crawl.UnsafeUrlException;
+import io.github.bigfiiish.crawlforge.career.CareerScanNotFoundException;
 import io.github.bigfiiish.crawlforge.service.CrawlNotFoundException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -14,8 +15,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    @ExceptionHandler(CrawlNotFoundException.class)
-    public ResponseEntity<ApiError> notFound(CrawlNotFoundException exception) {
+    @ExceptionHandler({CrawlNotFoundException.class, CareerScanNotFoundException.class})
+    public ResponseEntity<ApiError> notFound(RuntimeException exception) {
         return error(HttpStatus.NOT_FOUND, exception.getMessage(), Map.of());
     }
 

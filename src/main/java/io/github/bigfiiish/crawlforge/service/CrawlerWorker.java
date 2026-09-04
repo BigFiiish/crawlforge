@@ -1,5 +1,8 @@
 package io.github.bigfiiish.crawlforge.service;
 
+import io.github.bigfiiish.crawlforge.career.CareerLinkPolicy;
+import io.github.bigfiiish.crawlforge.career.CareerRepository;
+import io.github.bigfiiish.crawlforge.career.JobPostingExtractor;
 import io.github.bigfiiish.crawlforge.config.CrawlerProperties;
 import io.github.bigfiiish.crawlforge.crawl.ContentHasher;
 import io.github.bigfiiish.crawlforge.crawl.FetchBlockedException;
@@ -39,6 +42,9 @@ public class CrawlerWorker {
     private final PageFetcher fetcher;
     private final ContentHasher hasher;
     private final CrawlerProperties properties;
+    private final CareerRepository careerRepository;
+    private final CareerLinkPolicy careerLinkPolicy;
+    private final JobPostingExtractor jobPostingExtractor;
 
     public CrawlerWorker(
             CrawlRepository repository,
@@ -47,7 +53,10 @@ public class CrawlerWorker {
             HostRateLimiter rateLimiter,
             PageFetcher fetcher,
             ContentHasher hasher,
-            CrawlerProperties properties) {
+            CrawlerProperties properties,
+            CareerRepository careerRepository,
+            CareerLinkPolicy careerLinkPolicy,
+            JobPostingExtractor jobPostingExtractor) {
         this.repository = repository;
         this.canonicalizer = canonicalizer;
         this.robotsService = robotsService;
@@ -55,6 +64,9 @@ public class CrawlerWorker {
         this.fetcher = fetcher;
         this.hasher = hasher;
         this.properties = properties;
+        this.careerRepository = careerRepository;
+        this.careerLinkPolicy = careerLinkPolicy;
+        this.jobPostingExtractor = jobPostingExtractor;
     }
 
     public void run(UUID jobId) {
@@ -107,8 +119,12 @@ public class CrawlerWorker {
         try {
             URI uri = URI.create(item.url());
             URI seed = URI.create(job.seedUrl());
+            boolean careerScan = careerRepository.isCareerScan(job.id());
             FetchResult result = fetcher.fetch(uri, target -> {
-                if (job.sameHostOnly() && !canonicalizer.sameHost(seed, target)) {
+                if (careerScan && !careerLinkPolicy.redirectAllowed(seed, target)) {
+                    throw new FetchBlockedException("Redirect left the careers site or supported ATS hosts");
+                }
+                if (!careerScan && job.sameHostOnly() && !canonicalizer.sameHost(seed, target)) {
                     throw new FetchBlockedException("Redirect left the permitted host");
                 }
                 RobotsPolicy robots = job.respectRobots()
@@ -133,13 +149,17 @@ public class CrawlerWorker {
             }
 
             Document document = Jsoup.parse(result.body(), result.finalUri().toString());
-            Set<URI> links = extractLinks(document, result.finalUri(), job);
+            Set<URI> links = extractLinks(document, result.finalUri(), job, careerScan);
             String text = truncate(document.body() == null ? "" : document.body().text(), properties.maxTextCharacters());
             CrawledPage page = new CrawledPage(
                     UUID.randomUUID(), job.id(), result.finalUri().toString(), item.depth(),
                     result.statusCode(), result.contentType(), truncate(document.title(), 1000),
                     hasher.sha256(result.body()), text, links.size(), Instant.now());
             repository.savePage(page);
+            if (careerScan) {
+                jobPostingExtractor.extract(document, result.finalUri())
+                        .ifPresent(candidate -> careerRepository.save(job.id(), page.id(), page.url(), candidate));
+            }
 
             if (item.depth() < job.maxDepth()) {
                 for (URI link : links) {
@@ -158,12 +178,14 @@ public class CrawlerWorker {
         }
     }
 
-    private Set<URI> extractLinks(Document document, URI pageUri, CrawlJob job) {
+    private Set<URI> extractLinks(Document document, URI pageUri, CrawlJob job, boolean careerScan) {
         URI seed = URI.create(job.seedUrl());
         Set<URI> links = new LinkedHashSet<>();
         document.select("a[href]").forEach(element -> canonicalizer
                 .canonicalize(pageUri, element.attr("href"))
-                .filter(uri -> !job.sameHostOnly() || canonicalizer.sameHost(seed, uri))
+                .filter(uri -> careerScan
+                        ? careerLinkPolicy.shouldFollow(seed, pageUri, uri, element.text())
+                        : !job.sameHostOnly() || canonicalizer.sameHost(seed, uri))
                 .ifPresent(links::add));
         return links;
     }

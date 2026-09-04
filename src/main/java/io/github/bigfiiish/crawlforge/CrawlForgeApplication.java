@@ -1,6 +1,8 @@
 package io.github.bigfiiish.crawlforge;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bigfiiish.crawlforge.config.CrawlerProperties;
+import io.github.bigfiiish.crawlforge.config.AiProperties;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
@@ -11,7 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-@EnableConfigurationProperties(CrawlerProperties.class)
+@EnableConfigurationProperties({CrawlerProperties.class, AiProperties.class})
 public class CrawlForgeApplication {
 
     public static void main(String[] args) {
@@ -29,5 +31,10 @@ public class CrawlForgeApplication {
                 .connectTimeout(properties.connectTimeout())
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
+    }
+
+    @Bean
+    ObjectMapper careerObjectMapper() {
+        return new ObjectMapper().findAndRegisterModules();
     }
 }

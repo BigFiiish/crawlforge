@@ -54,3 +54,32 @@ CREATE TABLE IF NOT EXISTS crawled_page (
 
 CREATE INDEX IF NOT EXISTS idx_page_job_fetched
     ON crawled_page(job_id, fetched_at);
+
+CREATE TABLE IF NOT EXISTS career_scan (
+    job_id UUID PRIMARY KEY,
+    careers_url VARCHAR(2048) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    CONSTRAINT fk_career_scan_job FOREIGN KEY (job_id) REFERENCES crawl_job(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS job_posting (
+    id UUID PRIMARY KEY,
+    scan_id UUID NOT NULL,
+    page_id UUID NOT NULL,
+    source_url VARCHAR(2048) NOT NULL,
+    title VARCHAR(1000) NOT NULL,
+    company VARCHAR(500),
+    location VARCHAR(1000),
+    skills CLOB,
+    experience VARCHAR(1000),
+    employment_type VARCHAR(500),
+    description CLOB,
+    extraction_method VARCHAR(32) NOT NULL,
+    discovered_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    CONSTRAINT fk_posting_scan FOREIGN KEY (scan_id) REFERENCES career_scan(job_id) ON DELETE CASCADE,
+    CONSTRAINT fk_posting_page FOREIGN KEY (page_id) REFERENCES crawled_page(id) ON DELETE CASCADE,
+    CONSTRAINT uq_posting_scan_url UNIQUE (scan_id, source_url)
+);
+
+CREATE INDEX IF NOT EXISTS idx_posting_scan_discovered
+    ON job_posting(scan_id, discovered_at);

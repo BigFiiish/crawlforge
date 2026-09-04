@@ -20,7 +20,7 @@ body {
   background: var(--paper);
 }
 
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 
 .shell {
   width: min(1180px, calc(100% - 40px));
@@ -73,7 +73,8 @@ form { margin-top: 28px; }
 .field { display: grid; gap: 8px; }
 .field-wide { margin-bottom: 14px; }
 .field span, .checks { font-size: 13px; font-weight: 650; }
-input[type="url"], input[type="number"] {
+.field em { color: var(--muted); font-size: 11px; font-style: normal; font-weight: 450; }
+input[type="url"], input[type="number"], textarea {
   width: 100%;
   border: 1px solid var(--line);
   background: #fff;
@@ -81,7 +82,9 @@ input[type="url"], input[type="number"] {
   padding: 11px 12px;
   outline: none;
 }
-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+textarea { resize: vertical; min-height: 104px; line-height: 1.45; }
+input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); outline: none; }
+.resume-field { margin-top: 16px; }
 .checks { display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; color: var(--muted); }
 .checks label { display: flex; align-items: center; gap: 7px; }
 .checks input { accent-color: var(--accent); }
@@ -97,6 +100,8 @@ button {
 button:hover { filter: brightness(.94); }
 button:disabled { opacity: .45; cursor: wait; }
 button.secondary { background: transparent; color: var(--ink); border-color: var(--line); }
+.button { display: inline-block; padding: 7px 10px; border: 1px solid var(--accent); font-size: 12px; font-weight: 700; text-decoration: none; }
+.secondary-link { border-color: var(--line); color: var(--ink); background: transparent; }
 .form-actions { display: flex; align-items: center; gap: 14px; }
 #form-message { margin: 0; color: var(--muted); font-size: 13px; }
 
@@ -111,7 +116,7 @@ button.secondary { background: transparent; color: var(--ink); border-color: var
 
 .workspace { grid-column: 1 / -1; padding: 28px; min-height: 410px; }
 .workspace-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
-.workspace-grid { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 18px; margin-top: 24px; }
+.workspace-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; margin-top: 24px; }
 .job-list, .detail { min-height: 290px; border-top: 1px solid var(--line); }
 .job { width: 100%; padding: 15px 4px; display: grid; grid-template-columns: 1fr auto; gap: 5px 12px; text-align: left; background: transparent; color: var(--ink); border: 0; border-bottom: 1px solid var(--line); }
 .job:hover, .job.selected { background: var(--accent-soft); }
@@ -132,6 +137,19 @@ button.secondary { background: transparent; color: var(--ink); border-color: var
 .page-title { display: flex; justify-content: space-between; gap: 14px; }
 .page a { color: var(--accent); overflow-wrap: anywhere; }
 .page p { margin: 7px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+.posting { padding: 18px 0; border-top: 1px solid var(--line); }
+.posting-top { display: flex; justify-content: space-between; gap: 18px; }
+.posting h4 { margin: 0 0 6px; color: var(--accent); font-size: 17px; line-height: 1.3; }
+.posting a { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.posting-meta, .description, .match-summary { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.description { margin-top: 11px; font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.chip { padding: 3px 7px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 700; }
+.method { color: var(--muted); font: 700 10px/1.2 monospace; letter-spacing: .05em; }
+.score { flex: 0 0 auto; color: var(--accent); font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
+.score small { font-size: 10px; letter-spacing: 0; }
+.match-summary { margin-top: 10px; padding: 9px 11px; border-left: 3px solid var(--accent); background: var(--accent-soft); color: var(--ink); }
 
 .footer { padding: 25px 0 40px; display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 

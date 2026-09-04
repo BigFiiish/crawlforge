@@ -38,6 +38,18 @@ public class CrawlApplicationService {
             boolean sameHostOnly,
             boolean respectRobots,
             double requestsPerSecond) {
+        CrawlJob job = createPending(seedUrl, maxPages, maxDepth, sameHostOnly, respectRobots, requestsPerSecond);
+        launch(job.id());
+        return require(job.id());
+    }
+
+    public CrawlJob createPending(
+            String seedUrl,
+            int maxPages,
+            int maxDepth,
+            boolean sameHostOnly,
+            boolean respectRobots,
+            double requestsPerSecond) {
         URI seed = canonicalizer.canonicalizeSeed(seedUrl);
         safetyPolicy.validate(seed);
         Instant now = Instant.now();
@@ -47,8 +59,13 @@ public class CrawlApplicationService {
                 0, 0, now, null, null, null);
         repository.createJob(job);
         repository.enqueue(job.id(), seed.toString(), 0, null);
-        jobManager.launch(job.id());
-        return require(job.id());
+        return job;
+    }
+
+    public CrawlJob launch(UUID id) {
+        require(id);
+        jobManager.launch(id);
+        return require(id);
     }
 
     public CrawlJob require(UUID id) {
