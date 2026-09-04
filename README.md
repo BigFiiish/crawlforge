@@ -3,10 +3,13 @@
 [![CI](https://github.com/BigFiiish/crawlforge/actions/workflows/ci.yml/badge.svg)](https://github.com/BigFiiish/crawlforge/actions/workflows/ci.yml)
 [![Java 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://adoptium.net/temurin/releases/?version=21)
 [![License: MIT](https://img.shields.io/badge/License-MIT-2F6F68.svg)](LICENSE)
+[![Live demo](https://img.shields.io/badge/Live-Render-46E3B7?logo=render&logoColor=white)](https://xingji-crawlforge.onrender.com)
 
 Repository: [github.com/BigFiiish/crawlforge](https://github.com/BigFiiish/crawlforge)
 
-Deployment configuration is versioned in [`render.yaml`](render.yaml). The public demo URL is added here only after a successful live deployment and end-to-end verification.
+Live demo: [xingji-crawlforge.onrender.com](https://xingji-crawlforge.onrender.com)
+
+Deployment configuration is versioned in [`render.yaml`](render.yaml). The public deployment was verified through the dashboard, health endpoint, and an end-to-end crawl of `https://example.com/`.
 
 CrawlForge is a persistent, polite web crawler built with Java 21 and Spring Boot. It is intentionally a systems project rather than a one-file scraper: crawl jobs have a durable breadth-first frontier, every discovered URL is canonicalized and deduplicated, failed fetches are retried with exponential backoff, and an interrupted worker can resume from database state.
 
