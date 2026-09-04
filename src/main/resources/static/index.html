@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CrawlForge is a persistent, polite web crawler with a durable BFS frontier.">
+  <title>CrawlForge — durable web crawler</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="shell masthead">
+    <div>
+      <p class="eyebrow">Java 21 · Spring Boot · durable BFS</p>
+      <h1>CrawlForge</h1>
+      <p class="lede">A persistent web crawler that treats politeness, recovery, and URL safety as system requirements.</p>
+    </div>
+    <a class="text-link" href="/actuator/health">Health</a>
+  </header>
+
+  <main class="shell layout">
+    <section class="panel launch-panel" aria-labelledby="launch-title">
+      <div class="section-heading">
+        <span>01</span>
+        <div>
+          <h2 id="launch-title">Launch a bounded crawl</h2>
+          <p>Private and local network targets are blocked by default.</p>
+        </div>
+      </div>
+
+      <form id="crawl-form">
+        <label class="field field-wide">
+          <span>Seed URL</span>
+          <input id="seed-url" name="seedUrl" type="url" value="https://example.com/" required maxlength="2048">
+        </label>
+        <div class="field-row">
+          <label class="field">
+            <span>Maximum pages</span>
+            <input id="max-pages" name="maxPages" type="number" value="25" min="1" max="500">
+          </label>
+          <label class="field">
+            <span>Maximum depth</span>
+            <input id="max-depth" name="maxDepth" type="number" value="2" min="0" max="10">
+          </label>
+          <label class="field">
+            <span>Requests / second</span>
+            <input id="requests-per-second" name="requestsPerSecond" type="number" value="1" min="0.1" max="10" step="0.1">
+          </label>
+        </div>
+        <div class="checks">
+          <label><input id="same-host" type="checkbox" checked> Stay on the seed host</label>
+          <label><input id="respect-robots" type="checkbox" checked> Respect robots.txt</label>
+        </div>
+        <div class="form-actions">
+          <button type="submit">Start crawl</button>
+          <p id="form-message" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+
+    <aside class="architecture" aria-label="Crawler architecture">
+      <p class="eyebrow">Request flow</p>
+      <ol>
+        <li><strong>Canonicalize</strong><span>normalize URLs and remove tracking noise</span></li>
+        <li><strong>Validate</strong><span>block private targets and unsafe redirects</span></li>
+        <li><strong>Schedule</strong><span>persist a breadth-first frontier in H2</span></li>
+        <li><strong>Fetch politely</strong><span>robots.txt, host rate limits, retries</span></li>
+        <li><strong>Parse and persist</strong><span>Jsoup links, text, metadata, SHA-256</span></li>
+      </ol>
+    </aside>
+
+    <section class="workspace" aria-labelledby="jobs-title">
+      <div class="workspace-head">
+        <div class="section-heading">
+          <span>02</span>
+          <div>
+            <h2 id="jobs-title">Crawl runs</h2>
+            <p>State is polled from the same API a client integration would use.</p>
+          </div>
+        </div>
+        <button id="refresh" class="secondary" type="button">Refresh</button>
+      </div>
+      <div class="workspace-grid">
+        <div id="jobs" class="job-list"><p class="empty">No crawl jobs yet.</p></div>
+        <div id="job-detail" class="detail"><p class="empty">Select a crawl to inspect its pages.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell footer">
+    <span>Bounded by design</span>
+    <span>Persistent frontier · idempotent discovery · recovery after restart</span>
+  </footer>
+  <script src="/app.js" defer></script>
+</body>
+</html>
