@@ -6,6 +6,8 @@
 
 Repository: [github.com/BigFiiish/crawlforge](https://github.com/BigFiiish/crawlforge)
 
+Deployment configuration is versioned in [`render.yaml`](render.yaml). The public demo URL is added here only after a successful live deployment and end-to-end verification.
+
 CrawlForge is a persistent, polite web crawler built with Java 21 and Spring Boot. It is intentionally a systems project rather than a one-file scraper: crawl jobs have a durable breadth-first frontier, every discovered URL is canonicalized and deduplicated, failed fetches are retried with exponential backoff, and an interrupted worker can resume from database state.
 
 The included dashboard and REST API make each run inspectable. The default configuration blocks private-network targets to reduce SSRF risk and respects `robots.txt` before fetching HTML.

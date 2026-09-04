@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: xingji-crawlforge
+    runtime: docker
+    plan: free
+    repo: https://github.com/BigFiiish/crawlforge
+    branch: main
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=75.0 -XX:+UseSerialGC
