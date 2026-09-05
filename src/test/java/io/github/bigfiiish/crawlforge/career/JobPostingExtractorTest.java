@@ -17,8 +17,8 @@ class JobPostingExtractorTest {
                 <html><head><script type="application/ld+json">
                 {"@context":"https://schema.org","@type":"JobPosting","title":"Senior Data Engineer",
                  "hiringOrganization":{"name":"Acme"},"jobLocation":{"address":{"addressLocality":"New York","addressRegion":"NY","addressCountry":"US"}},
-                 "employmentType":"FULL_TIME","experienceRequirements":"5+ years of experience",
-                 "description":"Build Java and Kafka services on AWS with PostgreSQL."}
+                 "employmentType":"FULL_TIME",
+                 "description":"&lt;div&gt;Build Java and Kafka services on AWS with PostgreSQL. 5+ years of professional software engineering experience required.&lt;/div&gt;"}
                 </script></head><body></body></html>
                 """);
 
@@ -27,6 +27,8 @@ class JobPostingExtractorTest {
         assertEquals("Acme", job.company());
         assertEquals("New York, NY, US", job.location());
         assertTrue(job.skills().containsAll(java.util.List.of("Java", "AWS", "Kafka", "PostgreSQL")));
+        assertEquals("5+ years of professional software engineering experience", job.experience());
+        assertTrue(!job.description().contains("<div>"));
         assertEquals("JSON_LD", job.extractionMethod());
     }
 

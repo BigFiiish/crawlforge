@@ -19,7 +19,8 @@ import org.springframework.stereotype.Component;
 public class JobPostingExtractor {
     private static final int MAX_DESCRIPTION = 30_000;
     private static final Pattern EXPERIENCE = Pattern.compile(
-            "(?i)\\b(\\d+\\+?\\s*(?:-|to)?\\s*\\d*\\s*years?(?:\\s+of)?\\s+(?:professional\\s+)?experience)\\b");
+            "(?i)\\b(\\d+\\+?\\s*(?:-|to)?\\s*\\d*\\s*years?(?:\\s+of)?"
+                    + "(?:\\s+[\\p{L}][\\p{L}/&-]*){0,6}\\s+experience)\\b");
     private static final Pattern ROLE_TITLE = Pattern.compile(
             "(?i)\\b(engineer|developer|architect|scientist|analyst|manager|director|designer|consultant|specialist|"
                     + "administrator|coordinator|representative|recruiter|technician|intern|lead|product|marketing|sales|operations)\\b");
@@ -178,7 +179,11 @@ public class JobPostingExtractor {
     }
 
     private String textOf(Element element) { return element == null ? "" : element.text().trim(); }
-    private String cleanHtml(String html) { return html == null ? "" : Jsoup.parse(html).text(); }
+    private String cleanHtml(String html) {
+        if (html == null) return "";
+        String text = Jsoup.parse(html).text();
+        return Pattern.compile("<[a-zA-Z][^>]*>").matcher(text).find() ? Jsoup.parse(text).text() : text;
+    }
     private String hostCompany(URI source) { return source.getHost() == null ? "" : source.getHost().replaceFirst("^www\\.", ""); }
     private String truncate(String value) { return truncate(value, MAX_DESCRIPTION); }
     private String truncate(String value, int max) { return value == null || value.length() <= max ? value : value.substring(0, max); }
